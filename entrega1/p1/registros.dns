@@ -1,0 +1,5 @@
+uniovi.es,NS,solid.net.uniovi.es
+midominio.com,A,pc01.midominio.com,192.168.20.1
+midominio.com,PTR,192.168.20.1,pc01.midominio.com
+uniovi.es,MX,mxa-006a4e02.gslb.pphosted.com
+uniovi.es,MX,mxb-006a4e02.gslb.pphosted.com
