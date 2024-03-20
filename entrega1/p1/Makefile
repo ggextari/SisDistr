@@ -1,13 +1,18 @@
 CC=gcc
-CFLAGS=-Wall
+CFLAGS=-I. -pthread -g
+DEPS = cola.c util.c 
+OBJ = srvdns.o cola.o cliente.o util.o
 
 all: srvdns cliente
 
-srvdns: srvdns.c
-    $(CC) $(CFLAGS) srvdns.c -o srvdns
+srvdns: srvdns.c $(DEPS)
+	$(CC) -o $@ $^ $(CFLAGS) 
 
-cliente: cliente.c
-    $(CC) $(CFLAGS) cliente.c -o cliente
+cliente: cliente.c util.c util.h
+	$(CC) -o $@ $^ $(CFLAGS) 
 
-clean:
-    rm -f srvdns cliente
+limpia: 
+	rm *.o
+cleanall:
+	-rm srvdns cliente
+	-rm sal*.dat

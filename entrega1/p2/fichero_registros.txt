@@ -1,5 +1,0 @@
-uniovi.es,NS
-midominio.com,A,pc01.midominio.com
-midominio.com,PTR,pc01.midominio.com
-uniovi.es,MX,mxa-006a4e02.gslb.pphosted.com
-uniovi.es,MX,mxb-006a4e02.gslb.pphosted.com
