@@ -33,6 +33,13 @@ typedef struct param_hilo_aten param_hilo_aten;
 // PROTOTIPOS FUNCIONES
 // ====================================================================
 static void handler(int signum);
+void procesa_argumentos(int argc, char *argv[]);
+int es_multiresultado(char *tiporecord);
+void procesa_mensaje_recibido(char *msg, char **dominio, char **record, char *clave);
+int coinciden_campos(char *domleido, char *recordleido, char *claveleida,
+                     char *dombuscado, char *recordbuscado, char *clavebuscada);
+void *Worker(int *id);
+void *AtencionPeticiones(param_hilo_aten *q);
 
 // ====================================================================
 // VARIABLES GLOBALES
@@ -104,20 +111,60 @@ void procesa_argumentos(int argc, char *argv[])
         fprintf(stderr, "Forma de uso: %s {t|u} puerto fichero_registros tam_cola num_hilos_aten num_hilos_worker fich_log \n", argv[0]);
         exit(1);
     }
+
     // Verificación de los argumentos e inicialización de las correspondientes variables globales.
     // Puedes usar las funciones en util.h
 
-    // A RELLENAR
-    //comprobar puerto invalido
-    //comprobar fichero de registros (intentar abrir con fopen)
-    //char *nomfrecords (global)
-    //cola mayor que 0
-    //Num_hilos_aten validar num y mayor que 0
-    //fich_log nada porque no existe
-    |
-    |
-    |
-    |
+    // A RELLENAR 
+    // Verificar si el primer argumento indica si es orientado a conexión (t) o no (u)
+    if (argv[1][0] == 't')
+        es_stream = CIERTO;
+    else if (argv[1][0] == 'u')
+        es_stream = FALSO;
+    else
+    {
+        fprintf(stderr, "El primer argumento debe ser 't' (TCP) o 'u' (UDP)\n");
+        exit(1);
+    }
+
+    // Puerto
+    puerto = atoi(argv[2]);
+
+    // Archivo de registros
+    FILE *fichero_registros = fopen(argv[3], "r");
+    if (fichero_registros == NULL)
+    {
+        fprintf(stderr, "No se pudo abrir el fichero de registros\n");
+        exit(1);
+    }
+    fclose(fichero_registros);
+    nomfrecords = argv[3];
+
+    // Tamaño de la cola
+    tam_cola = atoi(argv[4]);
+    if (tam_cola <= 0)
+    {
+        fprintf(stderr, "El tamaño de la cola debe ser mayor que 0\n");
+        exit(1);
+    }
+
+    // Número de hilos de atención
+    num_hilos_aten = atoi(argv[5]);
+    if (num_hilos_aten <= 0)
+    {
+        fprintf(stderr, "El número de hilos de atención debe ser mayor que 0\n");
+        exit(1);
+    }
+
+    // Número de hilos trabajadores
+    num_hilos_work = atoi(argv[6]);
+    if (num_hilos_work <= 0)
+    {
+        fprintf(stderr, "El número de hilos trabajadores debe ser mayor que 0\n");
+        exit(1);
+    }
+
+    // Fichero de log (no utilizado en esta versión)
 }
 
 // Función de utilidad para saber si la consulta DNS es del tipo
@@ -218,10 +265,9 @@ void *Worker(int *id)
         // un mensaje de depuración mostrando el id del hilo y el mensaje
         // extraido de la cola
         // A RELLENAR
-        //obtener_dato_cola(&cola_petiiciones) -> devuelve puntero, almacenar en pet (dato_cola *)
-        |
-        |
-        |
+        pet = obtener_dato_cola(&cola_peticiones);
+        sprintf(pantalla, "Worker %d: Mensaje recibido: %s\n", id_worker, pet->msg);
+        log_debug(pantalla);
 
         fp = fopen(nomfrecords, "r");
         if (fp == NULL)
@@ -234,10 +280,7 @@ void *Worker(int *id)
             // Separar el mensaje en sus constituyentes, con ayuda de la función
             // procesa_mensaje_recibido()
             // A RELLENAR
-            //procesa_mensaje_recibido(dombuscado, recordbuscado, clavebusqueda)
-            //si coinciden los campos -> acumulamos el resultado en msg
-            |
-            |
+            procesa_mensaje_recibido(pet->msg, &dombuscado, &recordbuscado, clavebusqueda);
 
             primera = CIERTO;
             bzero(msg, TAMMSG);
@@ -284,12 +327,8 @@ void *Worker(int *id)
                     // Si no se trata de un registro que pueda tener varios resultados
                     // salimos del bucle pues ya hemos encontrado un resultado
                     // A RELLENAR
-                    //si no es NS o MX
-                    //if(!es_multiresultado()) break;
-                    |
-                    |
-                    |
-                    |
+                    if (!es_multiresultado(recordleido))
+                        break;
                 }
             }
             fclose(fp);
@@ -308,25 +347,23 @@ void *Worker(int *id)
 
             // Escribimos la línea en el fichero de log (con exclusión mutua entre workers)
             // A RELLENAR
-            |
-            |
-            |
-            |
+            pthread_mutex_lock(&mfsal);
+            fpsal = fopen("fich_log", "a");
+            fprintf(fpsal, "%s %s:%d %s %s\n", fechahora, ip_cliente, puerto_cliente, dombuscado, msg);
+            fclose(fpsal);
+            pthread_mutex_unlock(&mfsal);
 
             // Enviar respuesta al cliente
             if (es_stream)
             {
                 // A RELLENAR
-                //send() o write() y close()
-                |
-                |
-
+                send(pet->s, msg, strlen(msg), 0);
+                close(pet->s);
             }
             else
             {
                 // A RELLENAR
-                // sendto()
-                |
+                sendto(sock, msg, strlen(msg), 0, (struct sockaddr *)&(pet->d_cliente), sizeof(pet->d_cliente));
             }
             
             // Liberar memoria
@@ -374,12 +411,10 @@ void *AtencionPeticiones(param_hilo_aten *q)
             // No se cierra el socket de datos, pues lo necesitará el worker
             // y lo cerrará él
             // A RELLENAR
-            //accept(&d_cliente) en el socket de arriba (comprobar que no falla)
-            //rcv() o read() y almacenar en buffer
-            |
-            |
-            |
-            |
+            sock_dat = accept(s, (struct sockaddr *)&d_cliente, &l_dir);
+            recibidos = recv(sock_dat, buffer, sizeof(buffer), 0);
+            buffer[recibidos] = 0;          // Añadir el terminador de cadena
+            buffer[strlen(buffer) - 1] = 0; // Quitar el retorno de carro
         }
         else // UDP
         {
@@ -404,15 +439,7 @@ void *AtencionPeticiones(param_hilo_aten *q)
 
         // Copiar el socket que debe usar el worker y meter el dato en la cola
         // A RELLENAR
-        //llamar a insertar_dato_cola(¿&cola_peticiones?, &p)
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
+        insertar_dato_cola(&cola_peticiones, p);
     }
 }
 
@@ -443,19 +470,27 @@ int main(int argc, char *argv[])
     // Inicializar el socket (teniendo en cuenta si es orientado a conexión o no)
     // y asignarle el puerto de escucha
     // A RELLENAR
-    //si primer arg t -> cierto
-    //  si no -> falso
-    //si c orientado a conexion y c es string -> crear socket y devuelve desciptor de socket (almacenat en int sock)
-    //  si no es string -> crear socket no orientado a conexión
-    //bind() a d_local
-    //si string -> listen()
-    |
-    |
-    |
-    |
-    |
-    |
-    |
+    sock = es_stream ? socket(AF_INET, SOCK_STREAM, 0) : socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0)
+    {
+        perror("socket");
+        exit(2);
+    }
+
+    if (bind(sock, (struct sockaddr *)&d_local, sizeof(d_local)) < 0)
+    {
+        perror("bind");
+        exit(3);
+    }
+
+    if (es_stream)
+    {
+        if (listen(sock, 5) < 0)
+        {
+            perror("listen");
+            exit(4);
+        }
+    }
 
     // creamos el espacio para los objetos de datos de hilo
     hilos_aten = (pthread_t *)malloc(sizeof(pthread_t) * num_hilos_aten);
@@ -483,14 +518,19 @@ int main(int argc, char *argv[])
         q = (param_hilo_aten *)malloc(sizeof(param_hilo_aten));
         
         // A RELLENAR
-        //Puntero devuelto por malloc no sea null
-        //Si no -> rellenar campos estructura param_hilo_aten
-        //Crear el hilo con pthreadcreate(Atencion_peticiones (param_hilo_aten))
-        //Comprobar lo devuelto por pthreadcreate
-        |
-        |
-        |
-        |
+        if (q == NULL)
+        {
+            fprintf(stderr, "ERROR: No se pudo reservar memoria para el parámetro del hilo de atención\n");
+            exit(15);
+        }
+
+        q->num_hilo = i;
+        q->s = sock;
+        if (pthread_create(&hilos_aten[i], NULL, (void *)AtencionPeticiones, (void *)q) != 0)
+        {
+            fprintf(stderr, "ERROR: No se pudo crear el hilo de atención\n");
+            exit(16);
+        }
     }
 
     // creamos un hilo por cada worker, pasándole el parámetro apropiado
