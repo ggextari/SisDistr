@@ -33,13 +33,6 @@ typedef struct param_hilo_aten param_hilo_aten;
 // PROTOTIPOS FUNCIONES
 // ====================================================================
 static void handler(int signum);
-void procesa_argumentos(int argc, char *argv[]);
-int es_multiresultado(char *tiporecord);
-void procesa_mensaje_recibido(char *msg, char **dominio, char **record, char *clave);
-int coinciden_campos(char *domleido, char *recordleido, char *claveleida,
-                     char *dombuscado, char *recordbuscado, char *clavebuscada);
-void *Worker(int *id);
-void *AtencionPeticiones(param_hilo_aten *q);
 
 // ====================================================================
 // VARIABLES GLOBALES
@@ -363,7 +356,7 @@ void *Worker(int *id)
             else
             {
                 // A RELLENAR
-                sendto(sock, msg, strlen(msg), 0, (struct sockaddr *)&(pet->d_cliente), sizeof(pet->d_cliente));
+                sendto(pet->s, msg, strlen(msg), 0, (struct sockaddr *)&(pet->d_cliente), sizeof(pet->d_cliente));
             }
             
             // Liberar memoria

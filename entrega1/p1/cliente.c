@@ -213,8 +213,9 @@ int main(int argc, char *argv[])
     for (i = 0; i < nhilos; i++)
     {
         // Esperar a que terminen todos los hilos
-    for (i = 0; i < nhilos; i++)
-    {
-        pthread_join(th[i], NULL);
+        for (i = 0; i < nhilos; i++)
+        {
+            pthread_join(th[i], NULL);
+        }
     }
 }
