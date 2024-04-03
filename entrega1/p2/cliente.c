@@ -47,15 +47,15 @@ char *hilos_file_names[MAXHILOSCLIENTE] = {
 
 // Función de utilidad para dividir una línea en campos, los cuales
 // retorna a través de los tres últimos parámetros por referencia
-void obtener_campos_consulta(int id_cliente, char *linea, 
-                    char **nomdominio, char **tiporecord, char **clave)
+void obtener_campos_consulta(int id_cliente, char *linea,
+                             char **nomdominio, char **tiporecord, char **clave)
 {
     char *token;
     char *loc;
-    char msg[TAMMSG];  // Para mensajes de depuración
+    char msg[TAMMSG]; // Para mensajes de depuración
 
-    linea[strlen(linea) - 1] = 0;           // Eliminar el salto de línea
-    token = strtok_r(linea, ", \n", &loc);  // Extraemos el primer token del mensaje
+    linea[strlen(linea) - 1] = 0;          // Eliminar el salto de línea
+    token = strtok_r(linea, ", \n", &loc); // Extraemos el primer token del mensaje
     if (token == NULL)
     {
         sprintf(msg, "Cliente %d: Error al extraer el primer token de la consulta\n", id_cliente);
@@ -63,7 +63,7 @@ void obtener_campos_consulta(int id_cliente, char *linea,
         exit(12);
     }
     *nomdominio = strdup(token);
-    
+
     // Extraemos el segundo token del mensaje
     token = strtok_r(NULL, ", \n", &loc);
     if (token == NULL)
@@ -89,44 +89,43 @@ void obtener_campos_consulta(int id_cliente, char *linea,
 
 void *Cliente(datos_hilo *p)
 {
-    CLIENT *cl;             // Estructura CLIENT para la rpc
-    FILE *fpin;             // Fichero de donde leer las consultas
-    FILE *fpsal;            // Fichero donde escribir los resultados
-    int id_cliente;         // Identificador del cliente
-    char buffer[TAMLINEA];  // Buffer de lectura de lineas del fichero de eventos
-    char msg[TAMLINEA];     // Mensaje para el servidor
+    CLIENT *cl;            // Estructura CLIENT para la rpc
+    FILE *fpin;            // Fichero de donde leer las consultas
+    FILE *fpsal;           // Fichero donde escribir los resultados
+    int id_cliente;        // Identificador del cliente
+    char buffer[TAMLINEA]; // Buffer de lectura de lineas del fichero de eventos
+    char msg[TAMLINEA];    // Mensaje para el servidor
 
-    Resultado *res;         // Resultado de la invocacion remota
-    char *s;                // Puntero a la linea leida del fichero
+    Resultado *res; // Resultado de la invocacion remota
+    char *s;        // Puntero a la linea leida del fichero
 
-    paramconsulta q;        // Argumento para la RPC
+    paramconsulta q; // Argumento para la RPC
 
     id_cliente = p->id_cliente; // Capturar el id del cliente en una variable local
 
     // Intentar abrir el fichero de salida (cuyo nombre depende del id del cliente)
-    if ---------------------- // A RELLENAR
+    if ((fpsal = fopen(hilos_file_names[id_cliente], "w")) == NULL) // A RELLENAR
     {
         fprintf(stderr, "Error: cliente %d no pudo abrir el fichero de salida %s\n", id_cliente, hilos_file_names[id_cliente]);
         exit(10);
     }
     // y el fichero de consultas
-    if ---------------------- // A RELLENAR
+    if ((fpin = fopen(p->nom_fichero_consultas, "r")) == NULL) // A RELLENAR
     {
         fprintf(stderr, "Error: cliente %d no pudo abrir el fichero de entrada %s\n", id_cliente, p->nom_fichero_consultas);
         exit(11);
     }
     free(p); // Ya no necesitamos el parámetro recibido, lo liberamos
 
-    do  // Repetir para cada línea leída del fichero de consultas
+    do // Repetir para cada línea leída del fichero de consultas
     {
         // Inicializar la estructura CLIENT (controlando posibles errores)
         // A RELLENAR
-        |
-        |
-        |
-        |
-        |
-        |
+        if ((cl = clnt_create(ip_srv, SRVDNS, PRIMERA, "tcp")) == NULL)
+        {
+            fprintf(stderr, "Error: cliente %d no pudo crear el cliente RPC\n", id_cliente);
+            exit(20);
+        }
 
         // Leer una línea del fichero de consultas
         bzero(buffer, TAMLINEA);
@@ -136,16 +135,14 @@ void *Cliente(datos_hilo *p)
             // Extraer los campos de la línea leída para dejarlos en los
             // campos de la estructura paramconsulta
             // A RELLENAR
-            |
-            |
+            obtener_campos_consulta(id_cliente, buffer, &q.nomdominio, &q.tiporecord, &q.clave);
 
             // Invocación remota del servicio consulta_record, protegiendo la llamada con un mutex
             // para evitar que dos hilos hagan la RPC a la vez
             // A RELLENAR
-            //log al mutex y luego mutex al log
-            |
-            |
-            |
+            pthread_mutex_lock(&m);
+            res = consulta_record_1(&q, cl);
+            pthread_mutex_unlock(&m);
 
             // Procesar la respuesta recibida, según el caso de la unión
             switch (res->caso)
@@ -154,14 +151,14 @@ void *Cliente(datos_hilo *p)
                 // Volcar a fpsal el dominio consultado, el tipo de record, la clave (solo
                 // si la consulta no fue tipo MX o NS) y el resultado recibido
                 // A RELLENAR
-                //MX_o_NS()
-                |
-                |
-                |
-                |
-                |
-                |
-                |
+                if (!es_MX_o_NS(q.tiporecord))
+                {
+                    fprintf(fpsal, "%s,%s,%s,%s\n", q.nomdominio, q.tiporecord, q.clave, res->Resultado_u.msg);
+                }
+                else
+                {
+                    fprintf(fpsal, "%s,%s,%s\n", q.nomdominio, q.tiporecord, res->Resultado_u.msg);
+                }
                 break;
             case 2:
                 sprintf(msg, "Error: Cliente %d Resultado invocacion remota: %s\n", id_cliente, res->Resultado_u.err);
@@ -208,16 +205,13 @@ int main(int argc, char *argv[])
 
     // Valida cada argumento y lo asigna a la variable apropiada
     // A RELLENAR
-    //nclientes -> entero, positivo y <= 10, que sea un num, >0
-    |
-    |
-    |
-    |
-    |
-    |
-    |
-    |
-
+    // nclientes -> entero, positivo y <= 10, que sea un num, >0
+    if ((num_clientes = atoi(argv[1])) <= 0 || num_clientes > MAXHILOSCLIENTE)
+    {
+        fprintf(stderr, "Error: el numero de clientes debe ser un entero positivo no mayor que %d\n", MAXHILOSCLIENTE);
+        exit(2);
+    }
+    ip_srv = argv[2];
 
     // Intenta abrir el fichero por si hubiera problemas abortar (aunque main
     // no usa este fichero sino que se lo pasará a los hilos Cliente)
@@ -252,18 +246,21 @@ int main(int argc, char *argv[])
     for (i = 0; i < num_clientes; i++)
     {
         // A RELLENAR
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
-        |
+        q = (datos_hilo *)malloc(sizeof(datos_hilo));
+        if (q == NULL)
+        {
+            sprintf(msg, "Error: no hay memoria suficiente para los datos del hilo cliente %d\n", i);
+            log_debug(msg);
+            exit(8);
+        }
+        q->id_cliente = i;
+        q->nom_fichero_consultas = argv[3];
+        if (pthread_create(&th[i], NULL, (void *)Cliente, (void *)q) != 0)
+        {
+            sprintf(msg, "Error: no se pudo crear el hilo cliente %d\n", i);
+            log_debug(msg);
+            exit(9);
+        }
     }
 
     // Esperar a que terminen los hilos Cliente

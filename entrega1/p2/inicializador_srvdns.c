@@ -44,11 +44,12 @@ int main(int argc, char *argv[])
 
     // Inicializar la estructura CLIENT para las llamadas a procedimientos remotos
     // A RELLENAR
-    |
-    |
-    |
-    |
-    |
+    cl = clnt_create(ip_srvdns, SRVDNS, PRIMERA, "tcp");
+    if (cl == NULL)
+    {
+        fprintf(stderr, "Error: cliente no pudo crear la estructura CLIENT\n");
+        exit(4);
+    }
 
     // Inicializar la estructura dat con las listas de dominios y tipos de registros
     dat.nomdominios = obtener_lista_dominios(argv[2]);
@@ -143,10 +144,8 @@ Lista *obtener_lista_tiposregistros(char *fichrecords)
 
         // Si ya estaba en la lista, saltamos esta iteración
         // A RELLENAR
-        |
-        |
-        |
-
+        if (posicion_en_lista(token, inicio) != NOENCONTRADO)
+            continue;
 
         // En caso contrario, debe crearse un nuevo elemento para este nombre
         // de dominio y añadirlo a la lista (nota: si inicio==NULL es el primero

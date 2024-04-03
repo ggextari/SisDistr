@@ -108,7 +108,6 @@ void mostrar_recuento_consultas(int nfils, int ncols, Lista *nomdominios, Lista 
     }
 }
 
-
 // Función de utilidad para ver si una cadena tiene el valor MX o NS
 int es_MX_o_NS(char *tiporecord)
 {
@@ -145,13 +144,17 @@ char *obtener_dato_en_posicion(int n, Lista *p)
     char *cad = NULL;
 
     // A RELLENAR
-    |
-    |
-    |
-    |
-    |
-    |
-    
+    int i = 0;
+    while (p && i < n)
+    {
+        p = p->siguiente;
+        i++;
+    }
+    if (p && i == n)
+    {
+        cad = strdup(p->dato);
+    }
+
     return (cad);
 }
 
@@ -163,12 +166,18 @@ int posicion_en_lista(char *cad, Lista *p)
     int pos = NOENCONTRADO;
 
     // A RELLENAR
-    |
-    |
-    |
-    |
-    |
-    |
-    
+    int i = 0;
+
+    while (p)
+    {
+        if (strcmp(p->dato, cad) == 0)
+        {
+            pos = i;
+            break;
+        }
+        p = p->siguiente;
+        i++;
+    }
+
     return (pos);
 }
