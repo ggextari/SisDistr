@@ -7,6 +7,9 @@
 
 void inicializar_cola(Cola *cola, int tam_cola)
 {
+    register int i;
+
+
     if (tam_cola < 1)
     {
         perror("Error: El tamaño de la cola debe ser mayor o igual que 1");
@@ -49,6 +52,12 @@ void inicializar_cola(Cola *cola, int tam_cola)
     {
         perror("Error: No se pudo inicializar el semáforo de cola llena");
         exit(7);
+    }
+
+     // Inicializar cada elemento del array a NULL
+    for (i = 0; i < tam_cola; i++)
+    {
+        cola->datos[i] = NULL;
     }
 }
 

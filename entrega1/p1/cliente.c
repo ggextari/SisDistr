@@ -146,7 +146,17 @@ void *hilo_lector(datos_hilo *p)
             // Volcar la petición y la respuesta, separadas por ":" en
             // el fichero de resultados
             // A RELLENAR
+            // Abrir el archivo de salida correspondiente
+            //if ((fpout = fopen(hilos_file_names[p->id], "a")) == NULL)
+            //{
+            //    fclose(fpin); // Cerrar el archivo de consultas
+            //    perror("Error: No se pudo abrir el fichero de resultados");
+            //    pthread_exit(NULL);
+            //}
+            // Escribir la petición y la respuesta en el archivo de salida
             fprintf(fpout, "%s:%s\n", buffer, respuesta);
+            // Cerrar el archivo de salida
+            fclose(fpout);
         }
     } while (s);
     // Terminado el hilo, liberamos la memoria del puntero y cerramos ficheros
@@ -188,9 +198,12 @@ int main(int argc, char *argv[])
 
     // Inicializar la estructura de dirección del servidor que se pasará a los hilos
     // A RELLENAR
+    memset(&d_serv,0,sizeof(struct sockaddr_in));
     d_serv.sin_family = AF_INET;
+    //d_serv.sin_port = htons(puerto_srvdns);
+    d_serv.sin_addr.s_addr = inet_addr(ip_srvdns);
     d_serv.sin_port = htons(puerto_srvdns);
-    inet_aton(ip_srvdns, &d_serv.sin_addr);
+    //net_aton(ip_srvdns, &d_serv.sin_addr);
 
     for (i = 0; i < nhilos; i++)
     {
@@ -198,7 +211,7 @@ int main(int argc, char *argv[])
         // A RELLENAR
         q = (datos_hilo *)malloc(sizeof(datos_hilo));
         q->id = i;
-        q->nom_fichero_consultas = strdup(fich_consultas);
+        q->nom_fichero_consultas = fich_consultas;
         q->dserv = (struct sockaddr *)&d_serv;
 
         // Crear el hilo
