@@ -1,0 +1,3 @@
+#!/bin/bash
+CLASSPATH=.:amqp-client-5.21.0.jar:slf4j-api-1.7.2.jar:slf4j-simple-1.7.2.jar
+java -cp $CLASSPATH Worker
