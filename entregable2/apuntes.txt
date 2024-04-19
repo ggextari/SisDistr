@@ -1,0 +1,70 @@
+p1 -> ClienteImpl.java:
+
+setRespuesta() -> método que saque de la cola
+
+p1 -> Cliente.java:
+
+cliente envia peticiones a traves de una cola Rabbit (no arrayBlockingQueue)
+
+id -> variable miembro privada
+
+//A RELLENAR 1 y 2
+crear instancia ClienteImpl y registrarla ante el RMI *no se que*
+Nombre del cliente: "Cliente_%d", id;
+crear ConnectionFactory
+... (igual que en la sesion de coordinacion y demas)
+(yo creo que se saca con ponerle a ChatGPT los ejemplos de los códigos de las pls anteriores)
+
+
+enviarConsultas()
+//A RELLENAR
+crear una cadena "Cliente_X, query"
+channel.basicPublish()
+
+//A RELLENAR
+esperar asincronamente
+sincronizar  hilos a traves del array BlockingQueue (invocar getRespuesta())
+abrir bw y escribir
+
+SrvDNSImpl.java:
+obtenerValorNthDomNthTipoRec()
+//A RELLENAR
+ContabilidadConsultas.obtenerValorDominioTipoRec()
+.
+.
+Se sacan todos de la clase ContabilidadConsultas
+
+SrvDNS.java:
+run()
+//A RELLENAR
+crear objeto de tipo connexion y con él otro de tipo channel
+
+consumer
+//A RELLENAR
+llega un array de bytes y hay que convertirlo en cadena
+meter en cola bloqueante
+
+//A RELLENAR
+Channel.basicConsumer();
+
+Worker()
+run()
+//A RELLENAR
+
+//A RELLENAR
+
+//A RELLENAR
+setRespuesta()
+
+//A RELLENAR
+mirar log de salida
+variable cadena (resultado de la consulta)
+
+//A RELLENAR
+crear arrayBlockingQueue, tamaño determinado por <tam_cola> (linea de órdenes del servidor)
+
+//A RELLENAR
+crear instancia de SrvDNSImpl y registrarlo ante *...*RMI
+
+//A RELLENAR
+a cada uno de ellos lanzarlo
