@@ -68,3 +68,6 @@ crear instancia de SrvDNSImpl y registrarlo ante *...*RMI
 
 //A RELLENAR
 a cada uno de ellos lanzarlo
+
+//a tener en cuenta:
+pthread_mutex_trylock();
