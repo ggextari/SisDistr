@@ -1,5 +1,23 @@
-#include <stdlib.h>
+/*
+EPI GIJÓN
+GRADO EN INGENIERÍA INFORMÁTICA
+SISTEMAS DISTRIBUIDOS - CURSO 3º
+MATERIAL DE LA ASIGNATURA
+-------------------------
+MECANISMO   : PIPES
+FICHERO     : prodcons.c
+DESCRIPCIÓN : Se propone la realización de un programa en el que dos
+procesos se envíen a través de un pipe un fichero de texto donde
+el que recibe debe mostrarlo por su salida standard.
+*/
+
+#include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+
+#define BUFFER_SIZE 1024
 
 main(int argc, char *argv[])
 {
