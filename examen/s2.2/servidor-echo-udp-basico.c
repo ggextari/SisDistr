@@ -15,6 +15,7 @@ int main(int argc, char *argv[]) {
     int s;
     int puerto = atoi(argv[1]);
     struct sockaddr_in direccion;
+    char buffer[1024];
 
     direccion.sin_family = AF_INET;
     direccion.sin_port = htons(puerto);
@@ -32,7 +33,6 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         int recibidos;
-        char buffer[1024];
         struct sockaddr_in dir_desde;
         static int tamanio = sizeof(dir_desde);
 
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
             perror("Error en rcvfrom");
             return(EXIT_FAILURE);
         }
-        sendto(s, buffer, sizeof(recibidos), 0, (struct sockaddr *) &dir_desde, sizeof(dir_desde));
+        sendto(s, buffer, recibidos, 0, (struct sockaddr *) &dir_desde, sizeof(dir_desde));
         fprintf(stdout, "Recibido y enviado: %s", buffer);
     }
 
