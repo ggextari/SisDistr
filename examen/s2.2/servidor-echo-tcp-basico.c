@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     direccion.sin_addr.s_addr = htonl(INADDR_ANY);
 
     socklen_t tam_direccion = sizeof(direccion);
-    if ((resultado = bind(s, (struct sockaddr *) &direccion, tam_direccion)) != 0) {
+    if (bind(s, (struct sockaddr *) &direccion, tam_direccion) != 0) {
         perror("Error en el bind");
         return(EXIT_FAILURE);
     }
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
             fprintf(stdout,"Recibido: %s", buffer);
             int enviado = write(sd, buffer, recibidos);
             fprintf(stdout,"Enviado: %s", buffer);
-            int recibidos = read(sd, buffer, sizeof(buffer));
+            recibidos = read(sd, buffer, sizeof(buffer));
             
         } while (recibidos > 0);
         if (close(sd) != 0){
