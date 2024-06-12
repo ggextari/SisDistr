@@ -67,22 +67,28 @@ int main(int argc, char *argv[]) {
         }
         fprintf(stdout, "Soy el proceso %d y me entró un cliente\n", getpid());
 
-        while(recibidos != 0) {
+        fprintf(stdout, "Soy el proceso %d y voy a hacer el read", getpid());
+        if ((recibidos = read(sd, buffer, sizeof(buffer))) < 0) {
+            perror("Error en el read");
+            exit(EXIT_FAILURE);
+        }
 
-            fprintf(stdout, "Soy el proceso %d y voy a hacer read\n", getpid());
-            if ((recibidos = read(sd, buffer, sizeof(buffer))) < 0) {
-                perror("Error en el read");
-                exit(EXIT_FAILURE);
-            }
+        while(recibidos != 0) {
 
             fprintf(stdout, "Soy el proceso %d y voy a hacer write\n", getpid());
             if ((enviados = write(sd, buffer, recibidos)) < 0) {
                 perror("Error en el write");
                 exit(EXIT_FAILURE);
             }
+
+            fprintf(stdout, "Soy el proceso %d y voy a hacer el read", getpid());
+            if ((recibidos = read(sd, buffer, sizeof(buffer))) < 0) {
+                perror("Error en el read");
+                exit(EXIT_FAILURE);
+            }
         }
 
-        fprintf(stdout, "Soy el proceso %d y voy a cerrar el socket de datos", getpid());
+        fprintf(stdout, "Soy el proceso %d y voy a cerrar el socket de datos\n", getpid());
         close(sd);
 
     }    
