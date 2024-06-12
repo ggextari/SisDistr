@@ -5,10 +5,20 @@
 #include <sys/uio.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <signal.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+
+// Manejador de la señal SIGCHLD para limpiar procesos hijo terminados
+void manejador_sigchld(int signo) {
+    (void)signo; // Evitar advertencias de variable no usada
+    while (waitpid(-1, NULL, WNOHANG) > 0);
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        fprintf(stderr, "Uso: %s <puerto_de_escucha>", argv[0]);
+        fprintf(stderr, "Uso: %s <puerto_de_escucha>\n", argv[0]);
         exit(-1);
     }
 
@@ -40,7 +50,7 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-        fprintf(stdout, "Soy el proceso %d y voy a hacer el listen\n", getpid());
+    fprintf(stdout, "Soy el proceso %d y voy a hacer el listen\n", getpid());
 
 
     if (listen(s, SOMAXCONN) == -1) {
@@ -48,11 +58,21 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
+    // Configurar el manejador de la señal SIGCHLD
+    struct sigaction sa;
+    sa.sa_handler = manejador_sigchld;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+        perror("Error al configurar el manejador de SIGCHLD");
+        exit(EXIT_FAILURE);
+    }
+
     while(1) {
 
             fprintf(stdout, "Soy el proceso %d y voy a crear el socket de datos\n", getpid());
 
-        if ((sd = accept(s, 0, 0)) < 0) {
+        if ((sd = accept(s, 0, 0)) == -1) {
             perror("Error en el accept");
             exit(-1);
         }
