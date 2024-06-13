@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
     char buffer[1024];
     int recibidos;
     int enviados;
+    int contador;
 
     puerto = atoi(argv[1]);
 
@@ -74,7 +75,30 @@ int main(int argc, char *argv[]) {
         }
 
         fprintf(stdout, "Soy el proceso %d y voy a hacer el fork()\n", getpid());
-        
+        if (fork() == 0) { // Si ye fíu
+            fprintf(stdout, "Soy el proceso %d y voy a cerrar el socket pasivo\n", getpid());
+            close(s);
+            do {
+                fprintf(stdout, "Soy el proceso %d y voy a hacer read()\n", getpid());
+                if ((recibidos = read(sd, buffer, sizeof(buffer))) < 0) {
+                    perror("Error en el read");
+                    exit(EXIT_FAILURE);
+                }
+                if (recibidos > 0) {
+                    fprintf(stdout, "Soy el proceso %d y voy a hacer write()\n", getpid());
+                    if ((enviados = write(sd, buffer, recibidos)) < 0) {
+                        perror("Error en el write");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            } while (recibidos != 0);
+            exit(EXIT_SUCCESS);
+        } else {
+            fprintf(stdout, "Soy el proceso %d y voy a aumentar el contador\n", getpid());
+            contador++;
+            fprintf(stdout, "Soy el proceso %d y voy a cerrar el socket de datos\n", getpid());
+            close(sd);
+        }
     }
 
 }

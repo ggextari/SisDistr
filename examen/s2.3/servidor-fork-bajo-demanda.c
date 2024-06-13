@@ -90,12 +90,13 @@ int main(int argc, char *argv[]) {
                     perror("Error en el read");
                     exit(-1);
                 }
-                if (recibidos > 0)
+                if (recibidos > 0) {
                     fprintf(stdout, "Soy el proceso %d y voy a hacer write\n", getpid());
                     if ((enviados = write(sd, buffer, recibidos)) < 0) {
                         perror("Error en el write");
                         exit(-1);
                     }
+                }
             } while (recibidos != 0);
             // fprintf(stdout, "Soy el proceso %d y voy a cerrar el socket pasivo", getpid());
             // close(s);
