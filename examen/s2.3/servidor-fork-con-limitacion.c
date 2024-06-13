@@ -12,10 +12,16 @@
 
 #define MAX_HIJOS 4
 
+// Contador global de procesos hijo
+int contador = 0;
+
 // Manejador de la señal SIGCHLD para limpiar procesos hijos terminados
 void manejador_sigchld(int signo) {
     (void)signo; // Evitar advertencias de variable no usada
-    while (waitpid(-1, NULL, WNOHANG) > 0);
+    while (waitpid(-1, NULL, WNOHANG) > 0) {
+        contador--;
+        fprintf(stdout, "Se ha muerto un hijo y el contador pasa a %d\n", contador);
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -30,7 +36,6 @@ int main(int argc, char *argv[]) {
     char buffer[1024];
     int recibidos;
     int enviados;
-    int contador;
 
     puerto = atoi(argv[1]);
 
@@ -56,7 +61,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    fprintf(stdout, "Soy el proceso %d y voy a configurar el manejador de la señal SIGCHLD\n", getpid())
+    fprintf(stdout, "Soy el proceso %d y voy a configurar el manejador de la señal SIGCHLD\n", getpid());
     // Configurar el manejador de la señal SIGCHLD
     struct sigaction sa;
     sa.sa_handler = manejador_sigchld;
@@ -73,6 +78,8 @@ int main(int argc, char *argv[]) {
             perror("Error en el accept");
             exit(EXIT_FAILURE);
         }
+
+        while (contador >= 4);
 
         fprintf(stdout, "Soy el proceso %d y voy a hacer el fork()\n", getpid());
         if (fork() == 0) { // Si ye fíu
@@ -94,11 +101,12 @@ int main(int argc, char *argv[]) {
             } while (recibidos != 0);
             exit(EXIT_SUCCESS);
         } else {
-            fprintf(stdout, "Soy el proceso %d y voy a aumentar el contador\n", getpid());
             contador++;
+            fprintf(stdout, "Soy el proceso %d y aumenté el contador a %d\n", getpid(), contador);
             fprintf(stdout, "Soy el proceso %d y voy a cerrar el socket de datos\n", getpid());
             close(sd);
         }
+        
     }
 
 }
