@@ -41,6 +41,17 @@ int CrearSocketUDP(int puerto)
     int r;
     // -------------------------------
     // A completar por el alumno
+    if ((s = socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
+        perror("Al crear el socket UDP");
+        exit(-1);
+    }
+    dir.sin_family = AF_INET;
+    dir.sin_port = htons(puerto);
+    dir.sin_addr.s_addr = htonl(INADDR_ANY);
+    if ((r = bind(s, (struct sockaddr *) &dir, sizeof(dir))) == -1) {
+        perror("En el bind UDP");
+        exit(-1);
+    }
     // -------------------------------
     return s;
 }
@@ -49,7 +60,7 @@ int dar_servicio_UDP(int s)
 {
     // Lee un datagrama del socket s y lo reenvía a su origen
     struct sockaddr_in origen;
-    socklen_t tamanio = sizeof(origin);
+    socklen_t tamanio = sizeof(origen);
     char buffer[100];
     int leidos;
 
@@ -97,7 +108,7 @@ int main(int argc, char * argv[])
 {
     int puerto;
     int s_tcp, s_udp;   // sockets "de escucha"
-     nt s_datos;        // Para la conexión TCP
+    int s_datos;        // Para la conexión TCP
     fd_set  conjunto;   // Para select
     int     maximo;     // Para select
 
@@ -119,11 +130,14 @@ int main(int argc, char * argv[])
         // Meter solo los que haya que vigilar
         // El UDP siempre
         // --------------------- A rellenar
+        FD_SET(s_udp, &conjunto);
         // Si hay cliente meto el de datos, si no meto el de escucha
         if (s_datos!=0)
             // ----------------- A rellenar
+            FD_SET(s_datos, &conjunto);
         else
             // ----------------- A rellenar
+            FD_SET(s_tcp, &conjunto);
 
         maximo = buscar_maximo(s_tcp, s_udp, s_datos);
 
@@ -132,26 +146,27 @@ int main(int argc, char * argv[])
         printf("Ha ocurrido algo\n");
 
         // Averiguar qué ocurrió
-        if // ---A rellenar-------------------------
+        if FD_ISSET(s_udp, &conjunto)// ---A rellenar-------------------------
         {
             printf("Ha ocurrido algo en el socket UDP\n");
-            dar_servicio_UDP(s_UDP);
+            dar_servicio_UDP(s_udp);
         }
-        if // ---A rellenar-------------------------
+        if FD_ISSET(s_tcp, &conjunto)// ---A rellenar-------------------------
         {
             printf("Ha llegado un cliente al socket TCP\n");
             s_datos = accept(s_tcp, NULL, NULL);
         }
-        if // ---A rellenar-------------------------
+        if FD_ISSET(s_datos, &conjunto)// ---A rellenar-------------------------
         {
             int n;
             printf("Han llegado datos por la conexión TCP\n");
             n = dar_servicio_TCP(s_datos);
             if (n == 0) {
-                printf("El cliente TCP ha desconectado"\n);
+                printf("El cliente TCP ha desconectado\n");
                 // ---A rellenar --------------------------
+                s_datos = 0;
             }
-        } // del while(1)
-        return 0;   // Nunca se ejecuta, pero para que el compilador no proteste
-    } // de main()
-}
+        }
+    } // del while(1)
+    return 0; // Nunca se ejecuta, pero para que el compilador no proteste
+} // del main()
