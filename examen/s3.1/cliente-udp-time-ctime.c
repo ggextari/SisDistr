@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <time.h>
 
 int main(int argc, char *argv[])
 {
@@ -29,13 +30,12 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    // strcpy(bufferE, "\0");
     if (sendto(s, bufferE, sizeof(bufferE), 0, (struct sockaddr *)&direccion, sizeof(direccion)) < 0)
     {
         perror("Error en el sendto");
         exit(-1);
     }
-    if ((recibidos = recvfrom(s, bufferR, sizeof(bufferR), 0, NULL, NULL)) < 0)
+    if ((recibidos = recvfrom(s, bufferR, sizeof(bufferR), 0, NULL, NULL)) == 0)
     {
         perror("Error en recvfrom");
         exit(-1);
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     }
 
     // Imprimir los bytes recibidos para verificar su contenido
-    printf("Bytes recibidor: %02x %02x %02x %02x\n",
+    printf("Bytes recibidos: %02x %02x %02x %02x\n",
            (unsigned char)bufferR[0],
            (unsigned char)bufferR[1],
            (unsigned char)bufferR[2],
@@ -63,10 +63,10 @@ int main(int argc, char *argv[])
 
     // Convertir el número a hexadecimal
     printf("Número en hexadecimal: %08x\n", numero);
+    const long int num = (const long int) numero - 2208988800;
 
-    double segundos_por_anyo = 365.25 * 24 * 60 * 60;
-    double anyos = numero / segundos_por_anyo;
-    printf("Años recibidos: %f\n", anyos);
+    char *fecha = ctime(&num);
+    printf("Años recibidos: %s", fecha);
 
     close(s); // Cerrar el socket
     return 0;
