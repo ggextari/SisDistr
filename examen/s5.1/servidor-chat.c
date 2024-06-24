@@ -158,7 +158,7 @@ int busca(char *nick, struct sockaddr_in *resultado)
     // Si ha sido encontrado, copiamos la información a la dirección
     // indicada por la variable resultado
     c = clientes[i];
-    memcpy(resultado, c->endpoint, sizeof(struct sockaddr_in);
+    memcpy(resultado, c->endpoint, sizeof(struct sockaddr_in));
     return 0;
 }
 
@@ -246,7 +246,7 @@ void ejecutar_comando(int sock)
         {
             respuesta = CMD_OK;
             sendByte(sock, respuesta);
-            sendEndpoint(sock, cliente);
+            sendEndpoint(sock, &cliente);
         }
         break;
     default:
@@ -273,6 +273,8 @@ int main(int argc, char *argv[])
         exit(0);
     }
     puerto = atoi(argv[1]);
+
+    init_clientes();
 
     sockEscucha = CrearSocketServidorTCP(puerto);
 

@@ -86,7 +86,7 @@ int Conectar(int sock, char *ip, int puerto)
     dir_serv.sin_family = AF_INET;
     dir_serv.sin_port = htons(puerto);
     result = inet_aton(ip, &dir_serv.sin_addr);
-    if (result == 0)
+    if (result == -1)
     {
         perror("Al convertir IP");
         exit(1);
@@ -129,7 +129,7 @@ short int readShort(int s)
     short int dato;
     int leidos;
     leidos = recv(s, &dato, 2, 0);
-    if (leidos != 2)
+    if (leidos == -1)
     {
         perror("Al leer short");
         exit(1);
@@ -144,7 +144,7 @@ void readString(int s, char *buff, int len)
     // apuntada hay espacio suficiente para albergar los bytes recibidos
     int leidos;
     leidos = recv(s, buff, len, 0);
-    if (leidos != len)
+    if (leidos == -1)
     {
         perror("Al leer string");
         exit(1);
@@ -158,13 +158,13 @@ void readEndpoint(int s, struct sockaddr_in *endpoint)
     // por el protocolo TCP IP
     int leidos;
     leidos = recv(s, &(endpoint->sin_addr.s_addr), 4, 0);
-    if (leidos != 4)
+    if (leidos == -1)
     {
         perror("Al leer ip");
         exit(1);
     }
     leidos = recv(s, &(endpoint->sin_port), 2, 0);
-    if (leidos != 2)
+    if (leidos == -1)
     {
         perror("Al leer puerto");
         exit(1);
