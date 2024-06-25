@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
     // objeto de datos de hilo donde se almacena el id de cada hilo lanzado
     pthread_t tid;
     petinfo *info;
+    
 
     // comprobación del número de argumentos
     if (argc < 3)
@@ -208,8 +209,9 @@ void * procesaPeticion(petinfo *pet)
         valido = 0;
     }
     // componer el mensaje de respuesta
-    if (valido)
+    if (valido) {
         sprintf(buffer, "1");
+    }
     else 
         sprintf(buffer, "0");
     // Devolver el mensaje
